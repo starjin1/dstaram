@@ -11,7 +11,14 @@ https://docs.djangoproject.com/en/3.1/ref/settings/
 """
 import os
 from pathlib import Path
+import sys
 
+import whitenoise.middleware
+
+sys.modules['django.utils.six.moves.urllib.parse']=__import__('six.moves.urllib_parse',fromlist=['urlencode'])
+sys.modules['django.utils.six.moves.urllib.request']=__import__('six.moves.urllib_request',fromlist=['urlopen'])
+
+import dj_database_url
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -23,9 +30,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = '!=nu70*!0*ccvgo9d@-54^yvz=k@_n2^8kb50&h)c66!r$dww9'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['127.0.0.1','.herokuapp.com']
 
 
 # Application definition
@@ -39,7 +46,26 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'photo',
     'accounts',
+    'disqus',
+    'django.contrib.sites',
+    'storages',
 ]
+AWS_ACCESS_KEY_ID = 'AKIAVLTOEE2FLQV5VHZ5'
+AWS_SECRET_ACCESS_KEY = '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'
+AWS_REGION = 'ap-northeast-2'
+AWS_STORAGE_BUCKET_NAME = 'eunchaeam'
+AWS_S3_CUSTOM_DOMAIN = '%s.s3.%s.amazonaws.com' % (AWS_STORAGE_BUCKET_NAME, AWS_REGION)
+
+AWS_S3_FILE_OVERWRITE = False
+
+AWS_S3_OBJECT_PARAMETERS = {
+    'CacheControl': 'max-age=86400',
+}
+AWS_DEFAULT_ACL = 'public-read'
+AWS_LOCATION = 'static'
+STATIC_URL = 'http://%s/%s/' % (AWS_S3_CUSTOM_DOMAIN, AWS_LOCATION)
+STATICFILES_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
+DEFAULT_FILE_STORAGE = 'config.asset_storage.MediaStorage'
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -49,7 +75,10 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
 ]
+
+STATIC_ROOT = [BASE_DIR, 'staticfiles']
 
 ROOT_URLCONF = 'config.urls'
 
@@ -81,6 +110,7 @@ DATABASES = {
         'NAME': BASE_DIR /'db.sqlite3'
     }
 }
+DATABASES['default'].update(dj_database_url.config(conn_max_age=500))
 
 
 # Password validation
@@ -119,7 +149,8 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/3.1/howto/static-files/
 
-STATIC_URL = '/static/'
+
+
 
 MEDIA_URL ='/media/'
 MEDIA_ROOT = BASE_DIR / "media"
@@ -127,3 +158,7 @@ MEDIA_ROOT = BASE_DIR / "media"
 AUTH_USER_MODEL = 'photo.User'
 
 LOGIN_REDIRECT_URL = '/'
+DISQUS_WEBSITE_SHORTNAME = 'Admin'
+SITE_ID =1
+
+

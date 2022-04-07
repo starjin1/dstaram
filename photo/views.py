@@ -1,8 +1,11 @@
 from django.shortcuts import render, redirect
 from .models import Photo
 from django.views.generic.edit import CreateView, DeleteView, UpdateView
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.mixins import LoginRequiredMixin
 # Create your views here.
 
+@login_required
 def photo_list(request):
     photos = Photo.objects.all()
     return render(request, 'photo/list.html',{'photos':photos})
